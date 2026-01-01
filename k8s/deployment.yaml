@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-gin
+  namespace: hello-gin
+  labels:
+    app: hello-gin
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello-gin
+  template:
+    metadata:
+      labels:
+        app: hello-gin
+    spec:
+      containers:
+      - name: hello-gin
+        image: registry.gitlab.com/Project-Universe-Dev/hello-gin-k8s:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        # ConfigMap から環境変数を注入
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: hello-gin-config
+              key: APP_ENV
+        - name: VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: hello-gin-config
+              key: VERSION
+        # GIT_COMMIT は後で CI/CD から動的に設定
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+      # GitLab Container Registry 認証用
+      imagePullSecrets:
+      - name: gitlab-registry-secret

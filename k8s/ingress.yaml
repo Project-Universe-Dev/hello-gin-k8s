@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-gin-ingress
+  namespace: hello-gin
+  labels:
+    app: hello-gin
+  annotations:
+    # Traefik 用アノテーション
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: hello-gin.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: hello-gin-svc
+            port:
+              number: 80
