@@ -94,11 +94,12 @@ deploy:
   script:
     - kubectl apply -f k8s/namespace.yaml
     
+    # Deploy Token を使用（CI_JOB_TOKEN ではなく永続トークン）
     - |
       kubectl create secret docker-registry gitlab-registry-secret \
         --docker-server=$CI_REGISTRY \
-        --docker-username=$CI_REGISTRY_USER \
-        --docker-password=$CI_REGISTRY_PASSWORD \
+        --docker-username=$DEPLOY_TOKEN_USERNAME \
+        --docker-password=$DEPLOY_TOKEN_PASSWORD \
         --namespace=hello-gin \
         --dry-run=client -o yaml | kubectl apply -f -
     
